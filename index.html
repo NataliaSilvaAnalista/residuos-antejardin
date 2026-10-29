@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clasifica tus residuos · Edificio Antejardín</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --verde:#2aa539;
+    --verde-hoja:#72b92c;
+    --blanco-bin:#8a8f95;
+    --blanco-bg:#eceae3;
+    --negro:#2a2a50;
+    --rojo:#D64545;
+    --naranja:#f58220;
+    --cream:#FBFBF8;
+    --cream2:#F0F7E8;
+    --text:#3f3f3f;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Montserrat',Arial,sans-serif;
+    background:linear-gradient(135deg,#FBFBF8 0%,#F0F7E8 60%,#FBFBF8 100%);
+    color:var(--negro);
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:24px 16px 48px;
+  }
+  .wrap{width:100%;max-width:1100px;}
+  header{text-align:center;margin-bottom:18px;}
+  .eyebrow{font-size:14px;font-weight:700;letter-spacing:2px;color:var(--naranja);text-transform:uppercase;margin:0 0 6px;}
+  h1{font-size:clamp(28px,4vw,46px);font-weight:800;margin:0 0 8px;line-height:1.1;}
+  .sub{font-size:16px;color:var(--text);font-weight:500;margin:0;}
+
+  /* ---- pantallas ---- */
+  .screen{display:none;}
+  .screen.active{display:block;}
+
+  /* ---- inicio ---- */
+  #start{
+    background:#fff;border-radius:28px;padding:40px;box-shadow:0 18px 40px rgba(42,42,80,0.1);
+    text-align:center;max-width:720px;margin:24px auto;
+  }
+  #start p{font-size:18px;line-height:1.5;color:var(--text);}
+  .legend{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin:22px 0;}
+  .chip{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;padding:8px 14px;border-radius:999px;color:#fff;}
+  button.primary{
+    background:var(--verde);color:#fff;border:none;font-family:inherit;font-weight:700;font-size:18px;
+    padding:16px 36px;border-radius:999px;cursor:pointer;box-shadow:0 10px 24px rgba(42,165,57,0.35);
+    transition:transform .15s ease;
+  }
+  button.primary:hover{transform:translateY(-2px);}
+  button.secondary{
+    background:#fff;color:var(--negro);border:2px solid var(--negro);font-family:inherit;font-weight:700;font-size:16px;
+    padding:12px 28px;border-radius:999px;cursor:pointer;margin-top:12px;
+  }
+
+  /* ---- progreso ---- */
+  .progress-row{display:flex;align-items:center;gap:16px;margin:10px 0 24px;}
+  .progress-bar{flex:1;height:14px;background:#e4e4dc;border-radius:999px;overflow:hidden;}
+  .progress-fill{height:100%;background:var(--verde-hoja);width:0%;transition:width .3s ease;}
+  .progress-label{font-size:14px;font-weight:700;color:var(--text);white-space:nowrap;}
+
+  /* ---- bandeja de residuos ---- */
+  #tray{
+    display:flex;flex-wrap:wrap;gap:16px;justify-content:center;
+    min-height:160px;padding:12px;margin-bottom:28px;
+  }
+  .item{
+    background:#fff;border-radius:18px;padding:16px 18px;width:150px;
+    box-shadow:0 10px 22px rgba(42,42,80,0.12);text-align:center;cursor:grab;
+    user-select:none;touch-action:none;transition:box-shadow .15s ease;
+    display:flex;flex-direction:column;align-items:center;gap:8px;
+  }
+  .item .emoji{font-size:40px;line-height:1;}
+  .item .label{font-size:14px;font-weight:600;color:var(--negro);line-height:1.25;}
+  .item.dragging{opacity:0.25;}
+  .item.correct-flash{background:#e8f6e9;box-shadow:0 0 0 3px var(--verde);}
+  .item.wrong-flash{background:#fbeaea;box-shadow:0 0 0 3px var(--rojo);}
+  .item.placed{display:none;}
+
+  .ghost{
+    position:fixed;z-index:999;pointer-events:none;width:150px;
+    background:#fff;border-radius:18px;padding:16px 18px;box-shadow:0 18px 36px rgba(42,42,80,0.3);
+    text-align:center;display:none;flex-direction:column;align-items:center;gap:8px;
+  }
+  .ghost .emoji{font-size:40px;line-height:1;}
+  .ghost .label{font-size:14px;font-weight:700;color:var(--negro);}
+
+  /* ---- canecas ---- */
+  #bins{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;}
+  .bin{
+    flex:1;min-width:150px;max-width:260px;border-radius:24px;padding:22px 14px 26px;
+    text-align:center;color:#fff;transition:transform .12s ease,box-shadow .12s ease;
+  }
+  .bin .bin-emoji{font-size:38px;display:block;margin-bottom:6px;}
+  .bin .bin-name{font-size:16px;font-weight:800;display:block;text-transform:uppercase;letter-spacing:1px;}
+  .bin .bin-hint{font-size:12px;font-weight:500;opacity:0.9;margin-top:4px;display:block;}
+  .bin.bin-verde{background:var(--verde);}
+  .bin.bin-blanco{background:var(--blanco-bin);}
+  .bin.bin-negro{background:var(--negro);}
+  .bin.bin-rojo{background:var(--rojo);}
+  .bin.hover-ok{transform:scale(1.05);box-shadow:0 0 0 6px rgba(255,255,255,0.6);}
+
+  .feedback-toast{
+    position:fixed;bottom:28px;left:50%;transform:translateX(-50%);
+    background:#2a2a50;color:#fff;padding:14px 24px;border-radius:999px;font-size:15px;font-weight:600;
+    box-shadow:0 10px 24px rgba(0,0,0,0.25);opacity:0;transition:opacity .25s ease;pointer-events:none;
+    max-width:90vw;text-align:center;
+  }
+  .feedback-toast.show{opacity:1;}
+
+  /* ---- resultados ---- */
+  #results{
+    background:#fff;border-radius:28px;padding:48px;box-shadow:0 18px 40px rgba(42,42,80,0.1);
+    text-align:center;max-width:680px;margin:24px auto;
+  }
+  #results .score{font-size:72px;font-weight:800;margin:10px 0;}
+  #results .verdict{font-size:22px;font-weight:700;padding:12px 24px;border-radius:999px;display:inline-block;margin:10px 0 20px;}
+  .verdict.pass{background:#e8f6e9;color:var(--verde);}
+  .verdict.fail{background:#fdeeee;color:var(--rojo);}
+  #review{text-align:left;margin-top:20px;max-height:260px;overflow-y:auto;}
+  #review .rev-item{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid #eee;font-size:14px;}
+  #review .rev-item b{color:var(--negro);}
+  footer.credit{margin-top:30px;text-align:center;font-size:13px;color:#8a8f95;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Edificio Antejardín · Colliers Internacional</p>
+    <h1>Clasifica tus residuos 🗑️♻️</h1>
+    <p class="sub">Ejercicio práctico y evaluación — código de colores + RESPEL</p>
+  </header>
+
+  <section id="start" class="screen active">
+    <p><b>¿Cómo funciona?</b> Vas a ver 19 residuos en la bandeja. Arrastra (o toca y toca la caneca) cada uno hasta la caneca correcta: verde, blanco, negro o rojo.</p>
+    <div class="legend">
+      <span class="chip" style="background:var(--verde)">🌱 Verde · Orgánicos</span>
+      <span class="chip" style="background:var(--blanco-bin)">♻️ Blanco · Aprovechables</span>
+      <span class="chip" style="background:var(--negro)">🗑️ Negro · No aprovechables</span>
+      <span class="chip" style="background:var(--rojo)">⚠️ Rojo · RESPEL</span>
+    </div>
+    <p>Al final verás tu puntaje. La meta es <b>85% o más</b> de respuestas correctas, igual que en la capacitación.</p>
+    <button class="primary" id="btn-start">Comenzar ejercicio</button>
+  </section>
+
+  <section id="game" class="screen">
+    <div class="progress-row">
+      <span class="progress-label" id="progress-label">0 / 19 clasificados</span>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    </div>
+    <div id="tray"></div>
+    <div id="bins">
+      <div class="bin bin-verde" data-bin="verde"><span class="bin-emoji">🌱</span><span class="bin-name">Verde</span><span class="bin-hint">Orgánicos aprovechables</span></div>
+      <div class="bin bin-blanco" data-bin="blanco"><span class="bin-emoji">♻️</span><span class="bin-name">Blanco</span><span class="bin-hint">Aprovechables</span></div>
+      <div class="bin bin-negro" data-bin="negro"><span class="bin-emoji">🗑️</span><span class="bin-name">Negro</span><span class="bin-hint">No aprovechables</span></div>
+      <div class="bin bin-rojo" data-bin="rojo"><span class="bin-emoji">⚠️</span><span class="bin-name">Rojo</span><span class="bin-hint">RESPEL</span></div>
+    </div>
+  </section>
+
+  <section id="results" class="screen">
+    <p class="eyebrow">Resultado</p>
+    <div class="score" id="score-text">0/19</div>
+    <div class="verdict" id="verdict-text"></div>
+    <div id="review"></div>
+    <button class="secondary" id="btn-retry">Reintentar</button>
+  </section>
+
+  <footer class="credit">Fractal Estrategias Sostenibles · Actualización PMIRS 2026</footer>
+</div>
+
+<div class="ghost" id="ghost"></div>
+<div class="feedback-toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var ITEMS = [
+    {text:"Cáscara de banano", emoji:"🍌", bin:"verde", why:"Es un residuo orgánico aprovechable."},
+    {text:"Posos de café", emoji:"☕", bin:"verde", why:"Es un residuo orgánico aprovechable."},
+    {text:"Restos de comida", emoji:"🍽️", bin:"verde", why:"Es un residuo orgánico aprovechable."},
+    {text:"Bolsita de té usada", emoji:"🍵", bin:"verde", why:"Es un residuo orgánico aprovechable."},
+    {text:"Botella de plástico limpia", emoji:"🧴", bin:"blanco", why:"Plástico limpio y seco: aprovechable."},
+    {text:"Caja de cartón", emoji:"📦", bin:"blanco", why:"El cartón limpio es aprovechable."},
+    {text:"Lata de aluminio", emoji:"🥫", bin:"blanco", why:"Los metales limpios son aprovechables."},
+    {text:"Hoja de papel impresa", emoji:"📄", bin:"blanco", why:"El papel es aprovechable."},
+    {text:"Frasco de vidrio", emoji:"🫙", bin:"blanco", why:"El vidrio es aprovechable."},
+    {text:"Bolsa de papel limpia", emoji:"🛍️", bin:"blanco", why:"El papel limpio es aprovechable."},
+    {text:"Servilleta de papel usada", emoji:"🧻", bin:"negro", why:"Al estar contaminada, no es aprovechable."},
+    {text:"Papel higiénico usado", emoji:"🧻", bin:"negro", why:"No es aprovechable por higiene."},
+    {text:"Colilla de cigarrillo", emoji:"🚬", bin:"negro", why:"No es aprovechable."},
+    {text:"Empaque de snack contaminado", emoji:"🍬", bin:"negro", why:"Los empaques con residuos de comida no son aprovechables."},
+    {text:"Vaso de café desechable con restos", emoji:"🥤", bin:"negro", why:"Al estar contaminado con líquido, no es aprovechable."},
+    {text:"Guante de látex usado", emoji:"🧤", bin:"negro", why:"No es aprovechable."},
+    {text:"Tóner de impresora agotado", emoji:"🖨️", bin:"rojo", why:"Es RESPEL: se entrega a un gestor autorizado."},
+    {text:"Bombillo fundido", emoji:"💡", bin:"rojo", why:"Es RESPEL: se entrega a un gestor autorizado."},
+    {text:"Pila usada", emoji:"🔋", bin:"rojo", why:"Es RESPEL — en Antejardín va a su recipiente diferenciado de pilas."}
+  ];
+
+  var PASS_THRESHOLD = 0.85;
+
+  var state = {order: [], index: 0, correct: 0, mistakes: []};
+
+  var startScreen = document.getElementById("start");
+  var gameScreen = document.getElementById("game");
+  var resultsScreen = document.getElementById("results");
+  var tray = document.getElementById("tray");
+  var progressLabel = document.getElementById("progress-label");
+  var progressFill = document.getElementById("progress-fill");
+  var ghost = document.getElementById("ghost");
+  var toast = document.getElementById("toast");
+  var bins = Array.prototype.slice.call(document.querySelectorAll(".bin"));
+
+  function shuffle(arr){
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--){
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  function showScreen(el){
+    [startScreen, gameScreen, resultsScreen].forEach(function(s){ s.classList.remove("active"); });
+    el.classList.add("active");
+  }
+
+  function showToast(msg){
+    toast.textContent = msg;
+    toast.classList.add("show");
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function(){ toast.classList.remove("show"); }, 1800);
+  }
+
+  function startGame(){
+    state.order = shuffle(ITEMS.map(function(it, i){ return i; }));
+    state.index = 0;
+    state.correct = 0;
+    state.mistakes = [];
+    renderTray();
+    updateProgress();
+    showScreen(gameScreen);
+  }
+
+  function updateProgress(){
+    var done = state.index;
+    var total = ITEMS.length;
+    progressLabel.textContent = done + " / " + total + " clasificados";
+    progressFill.style.width = (done / total * 100) + "%";
+  }
+
+  function renderTray(){
+    tray.innerHTML = "";
+    state.order.forEach(function(itemIdx, pos){
+      var it = ITEMS[itemIdx];
+      var card = document.createElement("div");
+      card.className = "item";
+      card.dataset.itemIdx = itemIdx;
+      card.dataset.pos = pos;
+      card.innerHTML = '<span class="emoji">' + it.emoji + '</span><span class="label">' + it.text + '</span>';
+      attachDrag(card);
+      tray.appendChild(card);
+    });
+  }
+
+  // ---- drag logic (pointer events: mouse + touch unified) ----
+  var dragState = null;
+
+  function attachDrag(card){
+    card.addEventListener("pointerdown", function(e){
+      if (card.classList.contains("placed")) return;
+      e.preventDefault();
+      var rect = card.getBoundingClientRect();
+      dragState = {
+        card: card,
+        offsetX: e.clientX - rect.left,
+        offsetY: e.clientY - rect.top,
+        w: rect.width
+      };
+      card.classList.add("dragging");
+      ghost.innerHTML = card.innerHTML;
+      ghost.style.width = rect.width + "px";
+      ghost.style.display = "flex";
+      moveGhost(e.clientX, e.clientY);
+      card.setPointerCapture && card.setPointerCapture(e.pointerId);
+    });
+
+    card.addEventListener("pointermove", function(e){
+      if (!dragState || dragState.card !== card) return;
+      moveGhost(e.clientX, e.clientY);
+      highlightBinUnder(e.clientX, e.clientY);
+    });
+
+    card.addEventListener("pointerup", function(e){
+      if (!dragState || dragState.card !== card) return;
+      finishDrag(e.clientX, e.clientY);
+    });
+
+    card.addEventListener("pointercancel", function(){
+      cancelDrag();
+    });
+  }
+
+  function moveGhost(x, y){
+    ghost.style.left = (x - dragState.offsetX) + "px";
+    ghost.style.top = (y - dragState.offsetY) + "px";
+  }
+
+  function binAt(x, y){
+    for (var i = 0; i < bins.length; i++){
+      var r = bins[i].getBoundingClientRect();
+      if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return bins[i];
+    }
+    return null;
+  }
+
+  function highlightBinUnder(x, y){
+    bins.forEach(function(b){ b.classList.remove("hover-ok"); });
+    var b = binAt(x, y);
+    if (b) b.classList.add("hover-ok");
+  }
+
+  function cancelDrag(){
+    if (!dragState) return;
+    dragState.card.classList.remove("dragging");
+    ghost.style.display = "none";
+    bins.forEach(function(b){ b.classList.remove("hover-ok"); });
+    dragState = null;
+  }
+
+  function finishDrag(x, y){
+    var card = dragState.card;
+    var targetBin = binAt(x, y);
+    card.classList.remove("dragging");
+    ghost.style.display = "none";
+    bins.forEach(function(b){ b.classList.remove("hover-ok"); });
+    dragState = null;
+
+    if (!targetBin){ return; } // suelto fuera de una caneca: no pasa nada
+
+    var itemIdx = parseInt(card.dataset.itemIdx, 10);
+    var item = ITEMS[itemIdx];
+    var chosenBin = targetBin.dataset.bin;
+    var isCorrect = (chosenBin === item.bin);
+
+    if (isCorrect){
+      state.correct++;
+      card.classList.add("correct-flash");
+      showToast("✔ " + item.text + " — correcto");
+    } else {
+      state.mistakes.push({item: item, chosen: chosenBin});
+      card.classList.add("wrong-flash");
+      showToast("✘ " + item.text + " va en " + binLabel(item.bin) + ": " + item.why);
+    }
+
+    state.index++;
+    updateProgress();
+
+    setTimeout(function(){
+      card.classList.add("placed");
+      if (state.index >= ITEMS.length){
+        setTimeout(showResults, 500);
+      }
+    }, 650);
+  }
+
+  function binLabel(binKey){
+    var map = {verde:"la caneca verde", blanco:"la caneca blanca", negro:"la caneca negra", rojo:"RESPEL (rojo)"};
+    return map[binKey] || binKey;
+  }
+
+  function showResults(){
+    var total = ITEMS.length;
+    var pct = Math.round((state.correct / total) * 100);
+    document.getElementById("score-text").textContent = state.correct + "/" + total + " (" + pct + "%)";
+    var verdictEl = document.getElementById("verdict-text");
+    if (pct / 100 >= PASS_THRESHOLD){
+      verdictEl.textContent = "¡Aprobado! Superaste la meta del 85%.";
+      verdictEl.className = "verdict pass";
+    } else {
+      verdictEl.textContent = "Casi lo logras — repasemos el código de colores y vuelve a intentarlo.";
+      verdictEl.className = "verdict fail";
+    }
+    var reviewEl = document.getElementById("review");
+    if (state.mistakes.length === 0){
+      reviewEl.innerHTML = "<p style='text-align:center;color:#2aa539;font-weight:700;'>¡Todas las respuestas fueron correctas! 🎉</p>";
+    } else {
+      reviewEl.innerHTML = "<p style='font-weight:700;margin-bottom:6px;'>Para repasar:</p>" +
+        state.mistakes.map(function(m){
+          return '<div class="rev-item"><span>' + m.item.emoji + '</span><div><b>' + m.item.text + '</b> va en ' + binLabel(m.item.bin) + '. ' + m.item.why + '</div></div>';
+        }).join("");
+    }
+    showScreen(resultsScreen);
+  }
+
+  document.getElementById("btn-start").addEventListener("click", startGame);
+  document.getElementById("btn-retry").addEventListener("click", startGame);
+
+})();
+</script>
+</body>
+</html>
