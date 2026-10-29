@@ -42,7 +42,7 @@
   .screen{display:none;}
   .screen.active{display:block;}
 
-  /* ---- inicio ---- */
+  /* ---- inicio / registro ---- */
   #start{
     background:#fff;border-radius:28px;padding:40px;box-shadow:0 18px 40px rgba(42,42,80,0.1);
     text-align:center;max-width:720px;margin:24px auto;
@@ -50,6 +50,17 @@
   #start p{font-size:18px;line-height:1.5;color:var(--text);}
   .legend{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin:22px 0;}
   .chip{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;padding:8px 14px;border-radius:999px;color:#fff;}
+
+  .reg-form{text-align:left;margin:26px 0 8px;display:flex;flex-direction:column;gap:14px;}
+  .reg-field label{display:block;font-size:14px;font-weight:700;color:var(--negro);margin-bottom:6px;}
+  .reg-field input{
+    width:100%;font-family:inherit;font-size:16px;padding:12px 14px;border-radius:12px;
+    border:2px solid #e4e4dc;background:var(--cream);color:var(--negro);
+  }
+  .reg-field input:focus{outline:none;border-color:var(--verde);}
+  .reg-error{color:var(--rojo);font-size:14px;font-weight:600;margin:4px 0 0;display:none;text-align:center;}
+  .reg-error.show{display:block;}
+
   button.primary{
     background:var(--verde);color:#fff;border:none;font-family:inherit;font-weight:700;font-size:18px;
     padding:16px 36px;border-radius:999px;cursor:pointer;box-shadow:0 10px 24px rgba(42,165,57,0.35);
@@ -121,6 +132,11 @@
     background:#fff;border-radius:28px;padding:48px;box-shadow:0 18px 40px rgba(42,42,80,0.1);
     text-align:center;max-width:680px;margin:24px auto;
   }
+  #results .participant{
+    background:var(--cream2);border-radius:16px;padding:14px 20px;margin:0 0 18px;
+    text-align:left;font-size:14px;line-height:1.6;color:var(--text);
+  }
+  #results .participant b{color:var(--negro);}
   #results .score{font-size:72px;font-weight:800;margin:10px 0;}
   #results .verdict{font-size:22px;font-weight:700;padding:12px 24px;border-radius:999px;display:inline-block;margin:10px 0 20px;}
   .verdict.pass{background:#e8f6e9;color:var(--verde);}
@@ -128,6 +144,7 @@
   #review{text-align:left;margin-top:20px;max-height:260px;overflow-y:auto;}
   #review .rev-item{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid #eee;font-size:14px;}
   #review .rev-item b{color:var(--negro);}
+  .results-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:22px;}
   footer.credit{margin-top:30px;text-align:center;font-size:13px;color:#8a8f95;}
 </style>
 </head>
@@ -140,7 +157,7 @@
   </header>
 
   <section id="start" class="screen active">
-    <p><b>¿Cómo funciona?</b> Vas a ver 19 residuos en la bandeja. Arrastra (o toca y toca la caneca) cada uno hasta la caneca correcta: verde, blanco, negro o rojo.</p>
+    <p><b>¿Cómo funciona?</b> Vas a ver 15 residuos en la bandeja. Arrastra (o toca y toca la caneca) cada uno hasta la caneca correcta: verde, blanco, negro o rojo.</p>
     <div class="legend">
       <span class="chip" style="background:var(--verde)">🌱 Verde · Orgánicos</span>
       <span class="chip" style="background:var(--blanco-bin)">♻️ Blanco · Aprovechables</span>
@@ -148,12 +165,29 @@
       <span class="chip" style="background:var(--rojo)">⚠️ Rojo · RESPEL</span>
     </div>
     <p>Al final verás tu puntaje. La meta es <b>85% o más</b> de respuestas correctas, igual que en la capacitación.</p>
+
+    <form class="reg-form" id="reg-form" autocomplete="off">
+      <div class="reg-field">
+        <label for="reg-nombre">Nombre completo</label>
+        <input type="text" id="reg-nombre" placeholder="Ej: María Camila Restrepo" required>
+      </div>
+      <div class="reg-field">
+        <label for="reg-cedula">Cédula</label>
+        <input type="text" id="reg-cedula" inputmode="numeric" placeholder="Ej: 1020304050" required>
+      </div>
+      <div class="reg-field">
+        <label for="reg-cargo">Cargo en el Edificio Antejardín</label>
+        <input type="text" id="reg-cargo" placeholder="Ej: Recepción, Mantenimiento, Administración..." required>
+      </div>
+    </form>
+    <p class="reg-error" id="reg-error">Completa los tres campos antes de empezar.</p>
+
     <button class="primary" id="btn-start">Comenzar ejercicio</button>
   </section>
 
   <section id="game" class="screen">
     <div class="progress-row">
-      <span class="progress-label" id="progress-label">0 / 19 clasificados</span>
+      <span class="progress-label" id="progress-label">0 / 15 clasificados</span>
       <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
     </div>
     <div id="tray"></div>
@@ -167,10 +201,14 @@
 
   <section id="results" class="screen">
     <p class="eyebrow">Resultado</p>
-    <div class="score" id="score-text">0/19</div>
+    <div class="participant" id="participant-info"></div>
+    <div class="score" id="score-text">0/15</div>
     <div class="verdict" id="verdict-text"></div>
     <div id="review"></div>
-    <button class="secondary" id="btn-retry">Reintentar</button>
+    <div class="results-actions">
+      <button class="secondary" id="btn-download">Descargar registro</button>
+      <button class="secondary" id="btn-retry">Reintentar</button>
+    </div>
   </section>
 
   <footer class="credit">Fractal Estrategias Sostenibles · Actualización PMIRS 2026</footer>
@@ -183,23 +221,26 @@
 (function(){
   "use strict";
 
+  // Pega aquí la URL de tu Apps Script Web App (ver README) para que cada
+  // resultado se guarde automáticamente en tu Google Sheet. Mientras diga
+  // "PEGA_AQUI_TU_URL", el envío automático simplemente se omite sin romper
+  // nada — el ejercicio sigue funcionando y el botón "Descargar registro"
+  // sigue disponible como respaldo local.
+  var SHEET_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbwla7IMCCW2en0kqGuc0ngJy_wQ3MHAIgqvzp2opz6xk7sP2nDVPDexmbBPZ2_KfK6V/exec";
+
   var ITEMS = [
     {text:"Cáscara de banano", emoji:"🍌", bin:"verde", why:"Es un residuo orgánico aprovechable."},
     {text:"Posos de café", emoji:"☕", bin:"verde", why:"Es un residuo orgánico aprovechable."},
     {text:"Restos de comida", emoji:"🍽️", bin:"verde", why:"Es un residuo orgánico aprovechable."},
-    {text:"Bolsita de té usada", emoji:"🍵", bin:"verde", why:"Es un residuo orgánico aprovechable."},
     {text:"Botella de plástico limpia", emoji:"🧴", bin:"blanco", why:"Plástico limpio y seco: aprovechable."},
     {text:"Caja de cartón", emoji:"📦", bin:"blanco", why:"El cartón limpio es aprovechable."},
     {text:"Lata de aluminio", emoji:"🥫", bin:"blanco", why:"Los metales limpios son aprovechables."},
     {text:"Hoja de papel impresa", emoji:"📄", bin:"blanco", why:"El papel es aprovechable."},
     {text:"Frasco de vidrio", emoji:"🫙", bin:"blanco", why:"El vidrio es aprovechable."},
-    {text:"Bolsa de papel limpia", emoji:"🛍️", bin:"blanco", why:"El papel limpio es aprovechable."},
     {text:"Servilleta de papel usada", emoji:"🧻", bin:"negro", why:"Al estar contaminada, no es aprovechable."},
-    {text:"Papel higiénico usado", emoji:"🧻", bin:"negro", why:"No es aprovechable por higiene."},
     {text:"Colilla de cigarrillo", emoji:"🚬", bin:"negro", why:"No es aprovechable."},
     {text:"Empaque de snack contaminado", emoji:"🍬", bin:"negro", why:"Los empaques con residuos de comida no son aprovechables."},
     {text:"Vaso de café desechable con restos", emoji:"🥤", bin:"negro", why:"Al estar contaminado con líquido, no es aprovechable."},
-    {text:"Guante de látex usado", emoji:"🧤", bin:"negro", why:"No es aprovechable."},
     {text:"Tóner de impresora agotado", emoji:"🖨️", bin:"rojo", why:"Es RESPEL: se entrega a un gestor autorizado."},
     {text:"Bombillo fundido", emoji:"💡", bin:"rojo", why:"Es RESPEL: se entrega a un gestor autorizado."},
     {text:"Pila usada", emoji:"🔋", bin:"rojo", why:"Es RESPEL — en Antejardín va a su recipiente diferenciado de pilas."}
@@ -207,7 +248,7 @@
 
   var PASS_THRESHOLD = 0.85;
 
-  var state = {order: [], index: 0, correct: 0, mistakes: []};
+  var state = {order: [], index: 0, correct: 0, mistakes: [], participant: null};
 
   var startScreen = document.getElementById("start");
   var gameScreen = document.getElementById("game");
@@ -218,6 +259,7 @@
   var ghost = document.getElementById("ghost");
   var toast = document.getElementById("toast");
   var bins = Array.prototype.slice.call(document.querySelectorAll(".bin"));
+  var regError = document.getElementById("reg-error");
 
   function shuffle(arr){
     var a = arr.slice();
@@ -240,7 +282,22 @@
     toast._t = setTimeout(function(){ toast.classList.remove("show"); }, 1800);
   }
 
+  function readRegistration(){
+    var nombre = document.getElementById("reg-nombre").value.trim();
+    var cedula = document.getElementById("reg-cedula").value.trim();
+    var cargo = document.getElementById("reg-cargo").value.trim();
+    if (!nombre || !cedula || !cargo){
+      regError.classList.add("show");
+      return null;
+    }
+    regError.classList.remove("show");
+    return {nombre: nombre, cedula: cedula, cargo: cargo};
+  }
+
   function startGame(){
+    var participant = readRegistration();
+    if (!participant) return;
+    state.participant = participant;
     state.order = shuffle(ITEMS.map(function(it, i){ return i; }));
     state.index = 0;
     state.correct = 0;
@@ -382,13 +439,21 @@
     var pct = Math.round((state.correct / total) * 100);
     document.getElementById("score-text").textContent = state.correct + "/" + total + " (" + pct + "%)";
     var verdictEl = document.getElementById("verdict-text");
-    if (pct / 100 >= PASS_THRESHOLD){
+    var passed = (pct / 100 >= PASS_THRESHOLD);
+    if (passed){
       verdictEl.textContent = "¡Aprobado! Superaste la meta del 85%.";
       verdictEl.className = "verdict pass";
     } else {
       verdictEl.textContent = "Casi lo logras — repasemos el código de colores y vuelve a intentarlo.";
       verdictEl.className = "verdict fail";
     }
+
+    var p = state.participant;
+    document.getElementById("participant-info").innerHTML =
+      "<div><b>Nombre:</b> " + escapeHtml(p.nombre) + "</div>" +
+      "<div><b>Cédula:</b> " + escapeHtml(p.cedula) + "</div>" +
+      "<div><b>Cargo:</b> " + escapeHtml(p.cargo) + "</div>";
+
     var reviewEl = document.getElementById("review");
     if (state.mistakes.length === 0){
       reviewEl.innerHTML = "<p style='text-align:center;color:#2aa539;font-weight:700;'>¡Todas las respuestas fueron correctas! 🎉</p>";
@@ -399,10 +464,89 @@
         }).join("");
     }
     showScreen(resultsScreen);
+    sendToSheet(buildRecord(pct, passed));
+  }
+
+  function buildRecord(pct, passed){
+    var p = state.participant;
+    return {
+      fecha: new Date().toLocaleString("es-CO"),
+      nombre: p.nombre,
+      cedula: p.cedula,
+      cargo: p.cargo,
+      correctas: state.correct,
+      total: ITEMS.length,
+      porcentaje: pct,
+      aprobado: passed ? "Sí" : "No",
+      errores: state.mistakes.length === 0 ? "Ninguno" :
+        state.mistakes.map(function(m){
+          return m.item.text + " (marcó " + binLabel(m.chosen) + ", correcto: " + binLabel(m.item.bin) + ")";
+        }).join("; ")
+    };
+  }
+
+  function sendToSheet(record){
+    if (!SHEET_WEBHOOK_URL || SHEET_WEBHOOK_URL.indexOf("PEGA_AQUI") !== -1) return;
+    // El navegador bloquea leer la respuesta de Apps Script por CORS, pero el
+    // envío sí llega al servidor y la fila se agrega — por eso no esperamos
+    // ni mostramos confirmación en pantalla; se puede verificar directamente
+    // en el Google Sheet.
+    try {
+      fetch(SHEET_WEBHOOK_URL, {
+        method: "POST",
+        headers: {"Content-Type": "text/plain;charset=utf-8"},
+        body: JSON.stringify(record)
+      }).catch(function(){ /* no-op: ver nota de CORS arriba */ });
+    } catch (err) { /* no-op */ }
+  }
+
+  function escapeHtml(str){
+    var div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function downloadRegistro(){
+    var p = state.participant;
+    var total = ITEMS.length;
+    var pct = Math.round((state.correct / total) * 100);
+    var passed = (pct / 100 >= PASS_THRESHOLD);
+    var fecha = new Date().toLocaleString("es-CO");
+    var lines = [
+      "Edificio Antejardín — Registro de ejercicio de clasificación de residuos",
+      "Fecha: " + fecha,
+      "Nombre completo: " + p.nombre,
+      "Cédula: " + p.cedula,
+      "Cargo: " + p.cargo,
+      "Puntaje: " + state.correct + "/" + total + " (" + pct + "%)",
+      "Resultado: " + (passed ? "Aprobado (>=85%)" : "No aprobado (<85%)"),
+      "",
+      "Errores:"
+    ];
+    if (state.mistakes.length === 0){
+      lines.push("Ninguno — todas las respuestas correctas.");
+    } else {
+      state.mistakes.forEach(function(m){
+        lines.push("- " + m.item.text + " (clasificado como " + binLabel(m.chosen) + "; correcto: " + binLabel(m.item.bin) + ")");
+      });
+    }
+    var blob = new Blob([lines.join("\n")], {type: "text/plain;charset=utf-8"});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    var safeName = p.nombre.replace(/[^a-zA-Z0-9]+/g, "_");
+    a.href = url;
+    a.download = "registro_" + safeName + "_" + p.cedula + ".txt";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 
   document.getElementById("btn-start").addEventListener("click", startGame);
-  document.getElementById("btn-retry").addEventListener("click", startGame);
+  document.getElementById("btn-retry").addEventListener("click", function(){
+    showScreen(startScreen);
+  });
+  document.getElementById("btn-download").addEventListener("click", downloadRegistro);
 
 })();
 </script>
